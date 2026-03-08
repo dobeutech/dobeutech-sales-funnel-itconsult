@@ -10,7 +10,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "automation:check": "npx tsx src/scripts/demo-setup-check.ts",
-    "automation:demo": "npx tsx src/scripts/demo-automation.ts"
+    "automation:demo": "npx tsx src/scripts/demo-automation.ts",
+    "automation:tools": "npx tsx src/scripts/demo-composio-tools.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.52.0",

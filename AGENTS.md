@@ -27,6 +27,7 @@ This is a **Next.js 15** application (TypeScript, Tailwind CSS v4, App Router) f
 - `src/scripts/` — Standalone runnable scripts (`tsx`)
   - `demo-setup-check.ts` — Validates SDK installation and env vars
   - `demo-automation.ts` — Runs a Claude agent with Composio tools
+  - `demo-composio-tools.ts` — Lists live toolkits and tools from Composio API
 - `src/__tests__/` — Jest + React Testing Library tests
 - `jest.config.ts` / `jest.setup.ts` — Test configuration
 - `eslint.config.mjs` — ESLint flat config extending `next/core-web-vitals` and `next/typescript`
@@ -58,3 +59,5 @@ The `Composio` client must be typed as `Composio<AnthropicProvider>` — the def
 - The `next lint` command emits a deprecation warning; this is expected with Next.js 15 and is non-blocking.
 - Jest uses `next/jest` for automatic SWC transforms — no separate Babel config needed.
 - The `composio.tools.get()` API requires exactly one of `{ tools: [...] }` or `{ toolkits: [...] }` — passing both optional fields in a single object triggers a TypeScript discriminated union error.
+- **Anthropic API key type matters:** The Claude Messages API requires a key starting with `sk-ant-api03-`. Admin keys (`sk-ant-admin-`) only work for the Admin API and will return 401 on message calls. If using Claude Code Max subscription locally, no API key is needed.
+- The `/api/health` endpoint validates SDK loading and env var presence at runtime — use it as a quick integration smoke test.
