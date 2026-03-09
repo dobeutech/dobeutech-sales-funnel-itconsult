@@ -1,2 +1,3 @@
 # dobeutech-sales-funnel-itconsult
-Fully automated customer sourcing and peospecting platform through invoicing and deliverables for dobeutech
+
+Fully automated customer sourcing and prospecting platform through invoicing and deliverables for Dobeu Tech Solutions.

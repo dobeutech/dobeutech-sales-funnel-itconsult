@@ -60,4 +60,12 @@ The `Composio` client must be typed as `Composio<AnthropicProvider>` — the def
 - Jest uses `next/jest` for automatic SWC transforms — no separate Babel config needed.
 - The `composio.tools.get()` API requires exactly one of `{ tools: [...] }` or `{ toolkits: [...] }` — passing both optional fields in a single object triggers a TypeScript discriminated union error.
 - **Anthropic API key type matters:** The Claude Messages API requires a key starting with `sk-ant-api03-`. Admin keys (`sk-ant-admin-`) only work for the Admin API and will return 401 on message calls. If using Claude Code Max subscription locally, no API key is needed.
-- The `/api/health` endpoint validates SDK loading and env var presence at runtime — use it as a quick integration smoke test.
+- The `/api/health` endpoint validates SDK loading and env var presence at runtime — use it as a quick integration smoke test. In production, env var details are suppressed.
+
+### Security guardrails (read SECURITY.md for details)
+
+- **Never** prefix secrets with `VITE_` or `NEXT_PUBLIC_` — they get bundled into client JS.
+- **Never** commit prospect data, hit lists, or batch JSON files — `.gitignore` blocks these patterns.
+- **Never** hardcode database project IDs, service URLs, or credentials in docs or source — use env vars.
+- **Always** add auth middleware (`src/middleware.ts`) before creating any dashboard/admin pages.
+- See `docs/NEXT-STEPS.md` for the full prioritized action plan from the PR review.
