@@ -122,7 +122,8 @@ dist
 # TernJS port file
 .tern-port
 
-# Stores VSCode versions used for testing VSCode extensions
+# VS Code
+.vscode/
 .vscode-test
 
 # yarn v3
@@ -147,7 +148,18 @@ vite.config.ts.timestamp-*
 .claude/
 .cursor/
 .serena/
-.vscode/
 
 # Prompt files (local only)
 prompt/
+
+# Security: prevent accidental PII/credential commits
+*.pem
+*.key
+*.cert
+*-credentials.*
+*-secrets.*
+*-hit-list.*
+*-batch-*.json
+!package.json
+!package-lock.json
+!tsconfig.json
