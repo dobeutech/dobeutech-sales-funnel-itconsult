@@ -1,8 +1,8 @@
-import { useNeonAuth } from '@neondatabase/neon-js/auth/react';
+import { useAuthData } from '@neondatabase/neon-js/auth/react';
 import { Link } from 'react-router-dom';
 
 export function Home() {
-  const { user, isLoading } = useNeonAuth();
+  const { user, isLoading } = useAuthData();
 
   if (isLoading) return <p>Loading...</p>;
 
@@ -12,7 +12,10 @@ export function Home() {
       {user ? (
         <div>
           <p>Welcome, {user.email}</p>
-          <Link to="/account/profile">Account Settings</Link>
+          <nav style={{ display: 'flex', gap: '1rem' }}>
+            <Link to="/dashboard">Prospect Dashboard</Link>
+            <Link to="/account/profile">Account Settings</Link>
+          </nav>
         </div>
       ) : (
         <div>
