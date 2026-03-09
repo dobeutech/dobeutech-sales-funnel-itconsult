@@ -139,6 +139,19 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
+# Netlify local state
+.netlify/
+
+# Claude Code / agent artifacts
+.agent/
+.claude-migration-backup/
+.claude/
+.cursor/
+.serena/
+
+# Prompt files (local only)
+prompt/
+
 # Security: prevent accidental PII/credential commits
 *.pem
 *.key
@@ -150,6 +163,3 @@ vite.config.ts.timestamp-*
 !package.json
 !package-lock.json
 !tsconfig.json
-
-# Agent state (local only)
-.agent/

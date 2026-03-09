@@ -1,0 +1,208 @@
+// Dobeu Tech Solutions — Sales Funnel Database Schema
+// Backend: Neon serverless Postgres (jolly-snow-79034315)
+// ORM: Prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+// ─── Prospects ────────────────────────────────────────────────────────────────
+// Sourced from Apollo.io, enriched with SEO/social scores
+
+model Prospect {
+  id              String   @id @default(cuid())
+  apolloId        String?  @unique @map("apollo_id")
+  firstName       String   @map("first_name")
+  lastName        String   @map("last_name")
+  email           String?
+  phone           String?
+  title           String?
+  companyName     String   @map("company_name")
+  companyWebsite  String?  @map("company_website")
+  industry        String?
+  employeeCount   Int?     @map("employee_count")
+  yearsFounded    Int?     @map("years_founded")
+  city            String?
+  state           String?
+  zipCode         String?  @map("zip_code")
+  linkedinUrl     String?  @map("linkedin_url")
+
+  // Enrichment scores (0–100)
+  seoScore        Int?     @map("seo_score")        // Semrush / Lighthouse
+  webScore        Int?     @map("web_score")        // Website quality gap
+  socialScore     Int?     @map("social_score")     // Social presence completeness
+  mapsScore       Int?     @map("maps_score")       // Google Maps data mismatch
+  overallScore    Int?     @map("overall_score")    // Weighted composite
+
+  // Raw enrichment data
+  semrushData     Json?    @map("semrush_data")
+  lighthouseData  Json?    @map("lighthouse_data")
+  socialData      Json?    @map("social_data")
+
+  // CRM state
+  status          ProspectStatus @default(DISCOVERED)
+  referralCode    String   @unique @default(cuid()) @map("referral_code")
+  referredBy      String?  @map("referred_by")      // referral_code of referrer
+  personalConnection Boolean @default(false) @map("personal_connection")
+  emailVerified   Boolean  @default(false) @map("email_verified")
+  notes           String?
+
+  // Sync status
+  apolloContactId       String? @map("apollo_contact_id")
+  googleContactId       String? @map("google_contact_id")
+  ms365ContactId        String? @map("ms365_contact_id")
+  customerioId          String? @map("customerio_id")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  outreachLogs    OutreachLog[]
+  surveyResponses SurveyResponse[]
+
+  @@map("prospects")
+}
+
+enum ProspectStatus {
+  DISCOVERED      // Found by Apollo, not yet enriched
+  ENRICHED        // SEO/social data collected, scored
+  QUEUED          // In this week's outreach batch (approved by you)
+  CONTACTED       // At least one touch sent
+  REPLIED         // Responded to outreach
+  SURVEY_SENT     // Typeform link sent
+  SURVEY_COMPLETE // Typeform submitted
+  MEETING_BOOKED  // Consultation scheduled
+  CLIENT          // Converted
+  UNSUBSCRIBED    // Opted out
+  BOUNCED         // Email bounced
+  NOT_FIT         // Manually disqualified
+
+  @@map("prospect_status")
+}
+
+// ─── Outreach Log ─────────────────────────────────────────────────────────────
+// Every touch across all channels
+
+model OutreachLog {
+  id           String        @id @default(cuid())
+  prospectId   String        @map("prospect_id")
+  prospect     Prospect      @relation(fields: [prospectId], references: [id])
+  channel      OutreachChannel
+  messageType  String        @map("message_type")  // "touch_1", "touch_2", "touch_3", "follow_up", etc.
+  subject      String?
+  bodySnippet  String?       @map("body_snippet")  // first 500 chars, no PII in full
+  apolloEmailId String?      @map("apollo_email_id")
+  sentAt       DateTime      @map("sent_at")
+  openedAt     DateTime?     @map("opened_at")
+  clickedAt    DateTime?     @map("clicked_at")
+  repliedAt    DateTime?     @map("replied_at")
+  bouncedAt    DateTime?     @map("bounced_at")
+  bounceReason String?       @map("bounce_reason")
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  @@map("outreach_log")
+}
+
+enum OutreachChannel {
+  EMAIL
+  LINKEDIN
+  SMS
+  PHONE
+
+  @@map("outreach_channel")
+}
+
+// ─── Survey Responses ─────────────────────────────────────────────────────────
+// Typeform submissions
+
+model SurveyResponse {
+  id               String    @id @default(cuid())
+  prospectId       String?   @map("prospect_id")
+  prospect         Prospect? @relation(fields: [prospectId], references: [id])
+  typeformResponseId String  @unique @map("typeform_response_id")
+  referralCode     String?   @map("referral_code")    // pre-filled unique code
+  referralSource   String?   @map("referral_source")  // who referred them
+  freeServiceChoice String?  @map("free_service_choice") // SEO / redesign / mailer / eval
+
+  // Survey answers (structured)
+  industry         String?
+  employeeCount    String?  @map("employee_count")
+  yearsInBusiness  String?  @map("years_in_business")
+  repetitiveTasks  Json?    @map("repetitive_tasks")    // array of task descriptions
+  currentTechStack Json?    @map("current_tech_stack")
+  marketingApproach String? @map("marketing_approach")
+  aiOpenness       String?  @map("ai_openness")          // "very open", "curious", "skeptical"
+  footTrafficTrend String?  @map("foot_traffic_trend")
+  biggestChallenge String?  @map("biggest_challenge")
+  rawAnswers       Json?    @map("raw_answers")          // full Typeform payload
+
+  submittedAt      DateTime  @map("submitted_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  @@map("survey_responses")
+}
+
+// ─── Analytics Events ─────────────────────────────────────────────────────────
+// Website visits, UTM attribution, and conversion events
+
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  prospectId  String?  @map("prospect_id")   // linked after email match
+  sessionId   String?  @map("session_id")
+  event       String                          // "page_view", "cta_click", "form_start", "form_submit"
+  page        String?
+  channel     String?                         // "email", "linkedin", "direct", "organic"
+
+  // UTM parameters
+  utmSource   String?  @map("utm_source")
+  utmMedium   String?  @map("utm_medium")
+  utmCampaign String?  @map("utm_campaign")
+  utmContent  String?  @map("utm_content")
+  utmTerm     String?  @map("utm_term")
+
+  referrer    String?
+  userAgent   String?  @map("user_agent")
+  ipHash      String?  @map("ip_hash")       // hashed for privacy
+  value       Float?                          // monetary value if applicable
+  metadata    Json?
+
+  ts          DateTime @default(now())
+
+  @@index([prospectId])
+  @@index([event, ts])
+  @@index([utmSource, utmCampaign])
+  @@map("analytics_events")
+}
+
+// ─── Weekly Batches ───────────────────────────────────────────────────────────
+// Tracks each week's approved outreach batch (human-in-the-loop checkpoint)
+
+model WeeklyBatch {
+  id              String    @id @default(cuid())
+  weekOf          DateTime  @map("week_of")
+  status          BatchStatus @default(PENDING_APPROVAL)
+  prospectIds     String[]  @map("prospect_ids")
+  approvedAt      DateTime? @map("approved_at")
+  sentCount       Int       @default(0) @map("sent_count")
+  replyCount      Int       @default(0) @map("reply_count")
+  surveyCount     Int       @default(0) @map("survey_count")
+  notes           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@map("weekly_batches")
+}
+
+enum BatchStatus {
+  PENDING_APPROVAL
+  APPROVED
+  SENT
+  COMPLETE
+
+  @@map("batch_status")
+}
