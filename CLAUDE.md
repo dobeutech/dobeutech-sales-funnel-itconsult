@@ -83,7 +83,7 @@ The dashboard app (`my-neon-app/src/lib/db.ts`) uses raw SQL via `@neondatabase/
 - 4458602 — Typeform Lead Processing with AI
 - 4459868 — Weekly Organizer SMS Notification (Twilio)
 - 4459818 — Contact Duplicate Detection & Merge
-- 4603226 — DTS Survey Response to Neon + Pinecone (webhook: `https://hook.us1.make.com/le75xd3ieza5iajwyvwsxtf9gorj87wj`)
+- 4603226 — DTS Survey Response to Neon + Pinecone (webhook: [REDACTED - should be loaded from a secret or environment variable])
 
 ## Prospecting Rules
 
