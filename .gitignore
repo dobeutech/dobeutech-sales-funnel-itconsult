@@ -148,6 +148,7 @@ vite.config.ts.timestamp-*
 .cursor/
 .serena/
 .vscode/
+CLAUDE.md
 
 # Prompt files (local only)
 prompt/
