@@ -52,7 +52,7 @@ npm run preview          # Vite preview of production build
 ## Database
 
 **Neon Postgres** (serverless) — project `jolly-snow-79034315`
-- Host: `ep-jolly-mouse-adt6tiw6.c-2.us-east-1.aws.neon.tech`
+- Host: [REDACTED - use environment variable `DATABASE_URL`]
 - Database: `salesfunnel` | Region: `aws-us-east-1`
 - Env: `DATABASE_URL` (pooled) + `DATABASE_URL_UNPOOLED` (direct) — see `.env.example`
 - Tables: `prospects`, `outreach_log`, `survey_responses`, `analytics_events`, `weekly_batches`
