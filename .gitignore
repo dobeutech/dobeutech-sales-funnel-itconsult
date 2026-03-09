@@ -137,3 +137,17 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Netlify local state
+.netlify/
+
+# Claude Code / agent artifacts
+.agent/
+.claude-migration-backup/
+.claude/
+.cursor/
+.serena/
+.vscode/
+
+# Prompt files (local only)
+prompt/
