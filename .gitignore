@@ -151,3 +151,6 @@ vite.config.ts.timestamp-*
 
 # Prompt files (local only)
 prompt/
+
+# Claude Code internal data (Unicode PUA dir)
+/
