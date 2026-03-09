@@ -12,8 +12,9 @@ export function Home() {
       {user ? (
         <div>
           <p>Welcome, {user.email}</p>
-          <nav style={{ display: 'flex', gap: '1rem' }}>
+          <nav style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <Link to="/dashboard">Prospect Dashboard</Link>
+            <Link to="/weekly">Weekly Report</Link>
             <Link to="/account/profile">Account Settings</Link>
           </nav>
         </div>
