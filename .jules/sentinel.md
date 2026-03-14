@@ -1,0 +1,4 @@
+## 2024-05-18 - [Missing Global Security Headers]
+**Vulnerability:** The Next.js application at the root of the project was not sending basic OWASP-recommended HTTP security headers such as `Strict-Transport-Security`, `X-Frame-Options`, and `X-Content-Type-Options`.
+**Learning:** Default Next.js applications do not enforce security headers. They must be manually added to `next.config.ts`.
+**Prevention:** Next.js applications must have a `headers` configuration in `next.config.ts` defining fundamental security headers for all routes (`/(.*)`) to ensure defense-in-depth against clickjacking, MIME-sniffing, and downgrade attacks.
