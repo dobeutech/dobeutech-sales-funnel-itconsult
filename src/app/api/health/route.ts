@@ -41,20 +41,12 @@ export async function GET() {
     };
   }
 
-  if (!isProd) {
-    checks.env_composio_api_key = {
-      status: process.env.COMPOSIO_API_KEY ? "ok" : "missing",
-      detail: process.env.COMPOSIO_API_KEY
-        ? "configured"
-        : "Set COMPOSIO_API_KEY in .env",
-    };
-    checks.env_anthropic_api_key = {
-      status: process.env.ANTHROPIC_API_KEY ? "ok" : "missing",
-      detail: process.env.ANTHROPIC_API_KEY
-        ? "configured"
-        : "Set ANTHROPIC_API_KEY in .env",
-    };
-  }
+  checks.env_composio_api_key = {
+    status: process.env.COMPOSIO_API_KEY ? "ok" : "missing",
+  };
+  checks.env_anthropic_api_key = {
+    status: process.env.ANTHROPIC_API_KEY ? "ok" : "missing",
+  };
 
   const allSdksOk = ["composio_core", "composio_anthropic", "anthropic_sdk"]
     .every((k) => checks[k]?.status === "ok");
