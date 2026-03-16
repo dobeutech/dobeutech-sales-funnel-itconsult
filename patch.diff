@@ -1,0 +1,8 @@
+--- .github/workflows/neon-branch.yml
++++ .github/workflows/neon-branch.yml
+@@ -40,4 +40,6 @@
+           branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+           api_key: ${{ secrets.NEON_API_KEY }}
+           expires_at: ${{ env.EXPIRES_AT }}
++          database: salesfunnel
++          role: salesfunnel_owner
