@@ -1,0 +1,4 @@
+## 2024-05-18 - [Missing Security Headers in Next.js Root App]
+**Vulnerability:** The Next.js application root was missing OWASP-recommended HTTP security headers in `next.config.ts`, despite memories indicating they were present.
+**Learning:** Even if documentation or memory states that global protections (like security headers) are configured, we must explicitly verify their existence in the actual codebase configuration (e.g., `next.config.ts`).
+**Prevention:** Always verify the presence of security headers by directly inspecting `next.config.ts` or querying the application, rather than relying solely on documentation or memory. Apply a robust set of default security headers (e.g., `X-DNS-Prefetch-Control`, `Strict-Transport-Security`, `X-Frame-Options`, `Permissions-Policy`, `X-Content-Type-Options`, `Referrer-Policy`) globally to all routes `/(.*)`.
