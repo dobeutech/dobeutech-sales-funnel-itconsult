@@ -37,13 +37,13 @@ jobs:
     steps:
       - name: Create Neon Branch
         id: create_neon_branch
-        uses: neondatabase/create-branch-action@v6
+        uses: neondatabase/create-branch-action@v5
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
           branch_name: pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
           database: salesfunnel
-          role: salesfunnel_owner
+          username: salesfunnel_owner
 
   delete_neon_branch:
     name: Delete Neon Branch
