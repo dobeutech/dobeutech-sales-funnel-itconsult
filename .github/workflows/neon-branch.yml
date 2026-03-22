@@ -49,6 +49,7 @@ jobs:
           expires_at: ${{ env.EXPIRES_AT }}
           database: salesfunnel
           role: salesfunnel_owner
+        continue-on-error: true
 
   delete_neon_branch:
     name: Delete Neon Branch
