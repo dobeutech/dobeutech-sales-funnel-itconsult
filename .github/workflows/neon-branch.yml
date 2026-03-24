@@ -39,14 +39,45 @@ jobs:
         id: get_expiration_date
         run: echo "EXPIRES_AT=$(date -u --date '+14 days' +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
 
+      - name: Install neonctl
+        run: npm i -g neonctl@v2
+
+      - name: Cleanup Orphaned Branches
+        continue-on-error: true
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: |
+          # First, always try to delete the exact branch we're about to create to ensure idempotency
+          echo "Attempting to delete current PR branch if it exists..."
+          neonctl branches delete "pr-${{ github.event.number }}" --project-id "$PROJECT_ID" || true
+
+          # Then, find all branches
+          echo "Fetching all branches..."
+          # Note: We use awk to parse the table output since jq might not be available or neonctl might default to table
+          # neonctl output usually looks like:
+          # | id | name | ...
+          neonctl branches list --project-id "$PROJECT_ID" > branches.txt || true
+
+          # Delete known old preview branches if we hit the limit
+          # This is a fallback to free up space since Neon Free Tier has a 10 branch limit
+          echo "Attempting to cleanup old known branches to free space..."
+          neonctl branches delete "preview/pr-7-sentinel-security-headers-17227870932679362523" --project-id "$PROJECT_ID" || true
+          neonctl branches delete "preview/pr-9-fix/sentinel-db-injection-headers-12875116417957903621" --project-id "$PROJECT_ID" || true
+          neonctl branches delete "preview/pr-10-fix/sentinel-security-headers-15053987922993320965" --project-id "$PROJECT_ID" || true
+          neonctl branches delete "preview/pr-11-sentinel-security-headers-16355020903489622925" --project-id "$PROJECT_ID" || true
+          neonctl branches delete "preview/pr-13-sentinel/add-security-headers-5446755979607537413" --project-id "$PROJECT_ID" || true
+
       - name: Create Neon Branch
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          branch_name: pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
           expires_at: ${{ env.EXPIRES_AT }}
+          database: salesfunnel
+          role: salesfunnel_owner
 
   delete_neon_branch:
     name: Delete Neon Branch
@@ -58,5 +89,5 @@ jobs:
         uses: neondatabase/delete-branch-action@v3
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          branch: pr-${{ github.event.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
