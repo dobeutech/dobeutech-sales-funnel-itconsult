@@ -39,6 +39,23 @@ jobs:
         id: get_expiration_date
         run: echo "EXPIRES_AT=$(date -u --date '+14 days' +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
 
+      - name: Clean up old preview branches
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: |
+          npm i -g neonctl@v2
+          # List branches, find ones starting with 'pr-' and delete all except main or the current one (if possible, though we just want to free up space). Let's delete branches created for old PRs if needed, or simply delete ones that have the 'pr-' prefix to free up capacity.
+          # Actually, we can just delete any branch starting with 'pr-' that is not the current 'pr-${{ github.event.number }}'.
+          echo "Cleaning up old branches..."
+          branches=$(neonctl branches list --project-id $PROJECT_ID -o json | jq -r '.[].name' | grep '^pr-' || true)
+          for branch in $branches; do
+            if [ "$branch" != "pr-${{ github.event.number }}" ]; then
+              echo "Deleting old branch: $branch"
+              neonctl branches delete $branch --project-id $PROJECT_ID || true
+            fi
+          done
+
       - name: Create Neon Branch
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v6
