@@ -39,14 +39,22 @@ jobs:
         id: get_expiration_date
         run: echo "EXPIRES_AT=$(date -u --date '+14 days' +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
 
+      - name: Create safe branch name
+        run: |
+          RAW_NAME="preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}"
+          SAFE_NAME=${RAW_NAME:0:63}
+          echo "SAFE_BRANCH_NAME=${SAFE_NAME}" >> "$GITHUB_ENV"
+
       - name: Create Neon Branch
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          branch_name: ${{ env.SAFE_BRANCH_NAME }}
           api_key: ${{ secrets.NEON_API_KEY }}
           expires_at: ${{ env.EXPIRES_AT }}
+          database: salesfunnel
+          role: salesfunnel_owner
 
   delete_neon_branch:
     name: Delete Neon Branch
@@ -54,9 +62,15 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
+      - name: Create safe branch name
+        run: |
+          RAW_NAME="preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}"
+          SAFE_NAME=${RAW_NAME:0:63}
+          echo "SAFE_BRANCH_NAME=${SAFE_NAME}" >> "$GITHUB_ENV"
+
       - name: Delete Neon Branch
         uses: neondatabase/delete-branch-action@v3
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          branch: ${{ env.SAFE_BRANCH_NAME }}
           api_key: ${{ secrets.NEON_API_KEY }}
