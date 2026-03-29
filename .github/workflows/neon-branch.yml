@@ -45,6 +45,45 @@ jobs:
           SAFE_NAME=${RAW_NAME:0:63}
           echo "SAFE_BRANCH_NAME=${SAFE_NAME}" >> "$GITHUB_ENV"
 
+      - name: Install neonctl
+        run: npm i -g neonctl@v2
+
+      - name: Cleanup older branches if limit reached
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: |
+          # Fetch all branches for the project
+          # neonctl list-branches requires --project-id
+          BRANCHES=$(neonctl branches list --project-id "$PROJECT_ID" -o json)
+
+          # We only want to delete branches that are for previews and not the current PR
+          # We will filter for branches that start with "preview/pr-" and are NOT the current branch
+          BRANCH_COUNT=$(echo "$BRANCHES" | jq '. | length')
+          echo "Current branch count: $BRANCH_COUNT"
+
+          if [ "$BRANCH_COUNT" -ge 8 ]; then
+            echo "Branch limit reached. Cleaning up older preview branches..."
+
+            # Find the oldest preview branch that is NOT the current branch
+            # Sort by created_at and get the ID of the first one matching preview/pr-
+            OLDEST_BRANCH_ID=$(echo "$BRANCHES" | jq -r '
+              map(select(.name | startswith("preview/pr-"))) |
+              map(select(.name != env.SAFE_BRANCH_NAME)) |
+              sort_by(.created_at) |
+              .[0].id // empty
+            ')
+
+            if [ -n "$OLDEST_BRANCH_ID" ]; then
+               echo "Deleting old branch ID: $OLDEST_BRANCH_ID"
+               neonctl branches delete "$OLDEST_BRANCH_ID" --project-id "$PROJECT_ID"
+            else
+               echo "No eligible old branches to delete. Create might still fail."
+            fi
+          else
+            echo "Branch count within limits."
+          fi
+
       - name: Create Neon Branch
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v6
