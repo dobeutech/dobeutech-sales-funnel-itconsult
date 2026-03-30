@@ -39,14 +39,49 @@ jobs:
         id: get_expiration_date
         run: echo "EXPIRES_AT=$(date -u --date '+14 days' +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
 
+      - name: Delete older orphaned preview branches
+        run: |
+          npm i -g neonctl@v2
+          echo "Fetching branches to delete old ones..."
+          # Fetch branches and parse the JSON response
+          neonctl branches list --project-id ${{ vars.NEON_PROJECT_ID }} --api-key ${{ secrets.NEON_API_KEY }} -o json > branches.json || true
+
+          if [ -f branches.json ]; then
+            # Get IDs of branches that start with 'preview/pr-'
+            OLD_BRANCHES=$(jq -r '.[] | select(.name | startswith("preview/pr-")) | .id' branches.json || true)
+
+            # Convert to array
+            OLD_BRANCHES_ARRAY=($OLD_BRANCHES)
+
+            # Keep the 2 most recent branches, delete the rest
+            if [ ${#OLD_BRANCHES_ARRAY[@]} -gt 2 ]; then
+              for ((i=2; i<${#OLD_BRANCHES_ARRAY[@]}; i++)); do
+                echo "Deleting old branch ${OLD_BRANCHES_ARRAY[$i]}"
+                neonctl branches delete ${OLD_BRANCHES_ARRAY[$i]} --project-id ${{ vars.NEON_PROJECT_ID }} --api-key ${{ secrets.NEON_API_KEY }} || true
+              done
+            else
+              echo "No old branches to delete (limit is 2)"
+            fi
+          fi
+
+      - name: Format Branch Name
+        id: format_branch
+        run: |
+          FULL_NAME="preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}"
+          # Truncate to 63 characters
+          TRUNCATED_NAME="${FULL_NAME:0:63}"
+          echo "BRANCH_NAME=$TRUNCATED_NAME" >> "$GITHUB_ENV"
+
       - name: Create Neon Branch
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          branch_name: ${{ env.BRANCH_NAME }}
           api_key: ${{ secrets.NEON_API_KEY }}
           expires_at: ${{ env.EXPIRES_AT }}
+          database: salesfunnel
+          role: salesfunnel_owner
 
   delete_neon_branch:
     name: Delete Neon Branch
@@ -54,9 +89,16 @@ jobs:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
+      - name: Format Branch Name
+        id: format_branch
+        run: |
+          FULL_NAME="preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}"
+          TRUNCATED_NAME="${FULL_NAME:0:63}"
+          echo "BRANCH_NAME=$TRUNCATED_NAME" >> "$GITHUB_ENV"
+
       - name: Delete Neon Branch
         uses: neondatabase/delete-branch-action@v3
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          branch: ${{ env.BRANCH_NAME }}
           api_key: ${{ secrets.NEON_API_KEY }}
