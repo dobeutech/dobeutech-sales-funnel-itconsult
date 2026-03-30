@@ -1,0 +1,9 @@
+## 2024-03-24 - Exposed Database URL in Vite Frontend
+**Vulnerability:** The Vite frontend application (`my-neon-app`) accesses the database directly from the client using `VITE_DATABASE_URL` and `@neondatabase/serverless` via `src/lib/db.ts`. This exposes the database connection string and allows arbitrary SQL execution from the client.
+**Learning:** The application architecture splits a Next.js app and a Vite React app. The Next.js app is SSR and can safely use the DB string, but Vite bundles any environment variable prefixed with `VITE_` into the client-side JavaScript bundle, making it readable to any user. Direct DB queries from the client bypass backend authorization checks and expose the credentials. This violates the `SECURITY.md` guidelines which require DB credentials to remain server-side only.
+**Prevention:** All database access from a client-side application (like Vite) must be routed through a backend API layer (like the Next.js API routes). Remove `VITE_DATABASE_URL` and direct `@neondatabase/serverless` usage in the frontend app, and enforce an architectural shift to an API layer.
+
+## 2024-03-24 - Missing Security Headers in Next.js Application
+**Vulnerability:** The Next.js root application (`next.config.ts`) lacks essential OWASP-recommended HTTP security headers such as `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and `Strict-Transport-Security`.
+**Learning:** Default Next.js configurations do not automatically enforce these security headers. The absence of these headers increases the attack surface for vulnerabilities like Cross-Site Scripting (XSS), clickjacking, MIME-type sniffing, and man-in-the-middle attacks.
+**Prevention:** Explicitly configure global security headers using the `headers()` async function in `next.config.ts` with a `source: "/(.*)"` matcher to ensure broad coverage across the application.
