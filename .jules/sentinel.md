@@ -1,0 +1,4 @@
+## 2024-04-01 - [Direct Frontend Database Connection]
+**Vulnerability:** The Vite frontend dashboard directly imported and executed database queries using `VITE_DATABASE_URL` via `@neondatabase/serverless` and `neon` client in `my-neon-app/src/lib/db.ts`.
+**Learning:** This exposes the raw database connection string to client-side code because it's bundled via `VITE_` prefix, allowing any user to extract it and run arbitrary SQL queries (bypassing any backend logic and auth constraints).
+**Prevention:** Strictly enforce `SECURITY.md` guidelines which state that database connection strings and client imports must only reside in Server Components or Next.js API Routes. Abstract frontend data access behind authenticated fetch API wrappers rather than relying directly on SQL execution from the browser.
