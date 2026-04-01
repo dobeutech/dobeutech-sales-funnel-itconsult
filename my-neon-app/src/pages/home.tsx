@@ -2,9 +2,12 @@ import { useAuthData } from '@neondatabase/neon-js/auth/react';
 import { Link } from 'react-router-dom';
 
 export function Home() {
-  const { user, isLoading } = useAuthData();
+  // @ts-expect-error The alpha neon-js types for useAuthData are misaligned
+  const { data, isPending } = useAuthData();
+  // @ts-expect-error data may contain user property despite type definitions
+  const user = data?.user;
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isPending) return <p>Loading...</p>;
 
   return (
     <div style={{ padding: '2rem', maxWidth: '600px', margin: '0 auto' }}>

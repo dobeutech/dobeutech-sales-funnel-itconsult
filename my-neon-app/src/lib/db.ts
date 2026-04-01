@@ -1,7 +1,3 @@
-import { neon } from '@neondatabase/serverless';
-
-const sql = neon(import.meta.env.VITE_DATABASE_URL);
-
 export interface Prospect {
   id: string;
   first_name: string;
@@ -37,39 +33,41 @@ export interface SurveyResponse {
 }
 
 export async function getProspects(status?: string): Promise<Prospect[]> {
-  const query = status
-    ? `SELECT * FROM prospects WHERE status = $1 ORDER BY overall_score DESC`
-    : `SELECT * FROM prospects ORDER BY overall_score DESC`;
-  const params = status ? [status] : [];
-  const rows = await sql(query, params);
-  return rows as Prospect[];
+  const url = status ? `/api/prospects?status=${encodeURIComponent(status)}` : '/api/prospects';
+  const response = await fetch(url);
+  if (!response.ok) throw new Error('Failed to fetch prospects');
+  return response.json();
 }
 
 export async function getProspectById(id: string): Promise<Prospect | null> {
-  const rows = await sql`SELECT * FROM prospects WHERE id = ${id}`;
-  return (rows[0] as Prospect) || null;
+  const response = await fetch(`/api/prospects/${encodeURIComponent(id)}`);
+  if (!response.ok) throw new Error('Failed to fetch prospect');
+  return response.json();
 }
 
 export async function updateProspectStatus(id: string, status: string): Promise<void> {
-  await sql`UPDATE prospects SET status = ${status}, updated_at = NOW() WHERE id = ${id}`;
+  const response = await fetch(`/api/prospects/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+  });
+  if (!response.ok) throw new Error('Failed to update prospect status');
 }
 
 export async function getSurveyResponses(): Promise<SurveyResponse[]> {
-  const rows = await sql`SELECT * FROM survey_responses ORDER BY submitted_at DESC`;
-  return rows as SurveyResponse[];
+  const response = await fetch('/api/survey_responses');
+  if (!response.ok) throw new Error('Failed to fetch survey responses');
+  return response.json();
 }
 
 export async function getProspectStats() {
-  const rows = await sql`
-    SELECT
-      status,
-      COUNT(*)::int as count,
-      AVG(overall_score)::numeric(5,1) as avg_score
-    FROM prospects
-    GROUP BY status
-    ORDER BY count DESC
-  `;
-  return rows;
+  const response = await fetch('/api/prospects/stats');
+  if (!response.ok) throw new Error('Failed to fetch stats');
+  return response.json();
 }
 
-export { sql };
+export async function getWeeklyStats() {
+  const response = await fetch('/api/prospects/weekly');
+  if (!response.ok) throw new Error('Failed to fetch weekly stats');
+  return response.json();
+}
