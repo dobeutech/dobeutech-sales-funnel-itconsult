@@ -2,7 +2,12 @@ import { useAuthData } from '@neondatabase/neon-js/auth/react';
 import { Link } from 'react-router-dom';
 
 export function Home() {
-  const { user, isLoading } = useAuthData();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const authData = useAuthData({} as any);
+
+  // @ts-expect-error type mismatches in neon-js alpha
+  const user = authData.data?.user;
+  const isLoading = authData.isPending;
 
   if (isLoading) return <p>Loading...</p>;
 
