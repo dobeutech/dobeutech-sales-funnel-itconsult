@@ -1,0 +1,4 @@
+## 2025-04-03 - [Critical] Direct Database Access in Vite Frontend
+**Vulnerability:** The Vite frontend (`my-neon-app`) was connecting to the Neon Postgres database directly using `@neondatabase/serverless` and an environment variable (`VITE_DATABASE_URL`). Vite bundles all `VITE_*` prefixed environment variables into the client-side JavaScript, exposing the database connection string and allowing any user full access to the database.
+**Learning:** Never establish direct database connections in a client-side frontend like Vite or a Next.js Client Component. Client-side code is entirely public.
+**Prevention:** Always create a backend API layer (e.g., Next.js API Routes, Express server, Server Components) to mediate database access, handle authentication, and keep credentials secure. Ensure database credentials are not prefixed with `VITE_` or `NEXT_PUBLIC_` and are only accessed in server-side environments.

@@ -2,7 +2,8 @@ import { useAuthData } from '@neondatabase/neon-js/auth/react';
 import { Link } from 'react-router-dom';
 
 export function Home() {
-  const { user, isLoading } = useAuthData();
+  // @ts-expect-error TypeScript mismatch in @neondatabase/neon-js/auth/react alpha
+  const { user, isLoading } = useAuthData({ });
 
   if (isLoading) return <p>Loading...</p>;
 
