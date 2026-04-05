@@ -39,14 +39,53 @@ jobs:
         id: get_expiration_date
         run: echo "EXPIRES_AT=$(date -u --date '+14 days' +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
 
+      - name: Cleanup old preview branches
+        run: |
+          npm i -g neonctl@v2
+          export NEON_API_KEY="${{ secrets.NEON_API_KEY }}"
+          export NEON_PROJECT_ID="${{ vars.NEON_PROJECT_ID }}"
+          # Find branches older than 2 weeks or orphaned and delete them if limit is reached (or just list for now)
+          # Free tier limit is often 10 branches. We will delete any branch starting with preview/ that is expired or old
+          neonctl branches list --project-id $NEON_PROJECT_ID -o json > branches.json || true
+
+          # We'll keep the logic simple: just use neonctl to delete old branches
+          node -e "
+            const fs = require('fs');
+            if (fs.existsSync('branches.json')) {
+              const data = JSON.parse(fs.readFileSync('branches.json', 'utf8'));
+              // Example logic: if branches > 8, delete the oldest preview branches
+              const previewBranches = data.filter(b => b.name.startsWith('preview/')).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+              if (data.length >= 8 && previewBranches.length > 0) {
+                const toDelete = previewBranches.slice(0, data.length - 7);
+                toDelete.forEach(b => console.log('Will delete: ' + b.id));
+                fs.writeFileSync('to_delete.txt', toDelete.map(b => b.id).join('\n'));
+              }
+            }
+          " || true
+          if [ -f to_delete.txt ]; then
+            while read -r branch_id; do
+              neonctl branches delete $branch_id --project-id $NEON_PROJECT_ID || true
+            done < to_delete.txt
+          fi
+
+      - name: Format branch name
+        id: format_branch
+        run: |
+          RAW_NAME="preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}"
+          # Substring to 63 chars max
+          CLEAN_NAME="${RAW_NAME:0:63}"
+          echo "BRANCH_NAME=$CLEAN_NAME" >> "$GITHUB_ENV"
+
       - name: Create Neon Branch
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v6
         with:
           project_id: ${{ vars.NEON_PROJECT_ID }}
-          branch_name: preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}
+          branch_name: ${{ env.BRANCH_NAME }}
           api_key: ${{ secrets.NEON_API_KEY }}
           expires_at: ${{ env.EXPIRES_AT }}
+          database: salesfunnel
+          role: salesfunnel_owner
 
   delete_neon_branch:
     name: Delete Neon Branch
