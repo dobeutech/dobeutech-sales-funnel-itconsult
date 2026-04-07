@@ -2,7 +2,8 @@ import { useAuthData } from '@neondatabase/neon-js/auth/react';
 import { Link } from 'react-router-dom';
 
 export function Home() {
-  const { user, isLoading } = useAuthData();
+  // @ts-expect-error - Mismatched types from neon-js alpha
+  const { user, isLoading } = useAuthData({});
 
   if (isLoading) return <p>Loading...</p>;
 
@@ -11,7 +12,7 @@ export function Home() {
       <h1>Dobeu Tech — Sales Funnel</h1>
       {user ? (
         <div>
-          <p>Welcome, {user.email}</p>
+          <p>Welcome, {(user as any).email}</p>
           <nav style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
             <Link to="/dashboard">Prospect Dashboard</Link>
             <Link to="/weekly">Weekly Report</Link>

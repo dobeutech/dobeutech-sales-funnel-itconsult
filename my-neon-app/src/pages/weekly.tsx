@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { sql } from '../lib/db';
 import { Link } from 'react-router-dom';
 
 interface WeeklyStats {
@@ -30,27 +29,11 @@ export function Weekly() {
   useEffect(() => {
     async function load() {
       try {
-        const [statsRows, recentRows] = await Promise.all([
-          sql`
-            SELECT
-              COUNT(*)::int as total_prospects,
-              COUNT(*) FILTER (WHERE status = 'QUEUED')::int as queued,
-              COUNT(*) FILTER (WHERE status = 'CONTACTED')::int as contacted,
-              COUNT(*) FILTER (WHERE status = 'REPLIED')::int as replied,
-              COUNT(*) FILTER (WHERE status = 'CLIENT')::int as clients,
-              AVG(overall_score)::numeric(5,1) as avg_score,
-              (SELECT COUNT(*)::int FROM survey_responses) as surveys_completed
-            FROM prospects
-          `,
-          sql`
-            SELECT id, first_name, last_name, company_name, status, overall_score, updated_at
-            FROM prospects
-            ORDER BY updated_at DESC
-            LIMIT 10
-          `,
-        ]);
-        setStats(statsRows[0] as WeeklyStats);
-        setRecent(recentRows as RecentActivity[]);
+        const res = await fetch('/api/weekly');
+        if (!res.ok) throw new Error('Failed to fetch weekly data');
+        const data = await res.json();
+        setStats(data.stats as WeeklyStats);
+        setRecent(data.recent as RecentActivity[]);
       } catch (err) {
         console.error('Failed to load weekly stats:', err);
       } finally {
