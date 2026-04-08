@@ -2,6 +2,7 @@ import { useAuthData } from '@neondatabase/neon-js/auth/react';
 import { Link } from 'react-router-dom';
 
 export function Home() {
+  // @ts-expect-error - alpha package type mismatch
   const { user, isLoading } = useAuthData();
 
   if (isLoading) return <p>Loading...</p>;
