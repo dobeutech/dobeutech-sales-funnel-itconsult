@@ -5,6 +5,7 @@ import type {
   MessageParam,
   ToolResultBlockParam,
   ToolUseBlock,
+  Tool,
 } from "@anthropic-ai/sdk/resources/messages";
 
 type ComposioWithAnthropic = Composio<AnthropicProvider>;
@@ -62,8 +63,7 @@ export class ClaudeAutomationAgent {
           toolkits: options.toolkits ?? ["github"],
         });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const tools = composioTools as any[];
+    const tools = composioTools as Tool[];
 
     const messages: MessageParam[] = [
       { role: "user", content: userMessage },
