@@ -1,3 +1,7 @@
+import { neon } from '@neondatabase/serverless';
+
+const sql = neon(import.meta.env.VITE_DATABASE_URL);
+
 export interface Prospect {
   id: string;
   first_name: string;
@@ -33,39 +37,39 @@ export interface SurveyResponse {
 }
 
 export async function getProspects(status?: string): Promise<Prospect[]> {
-  const url = status ? `/api/prospects?status=${encodeURIComponent(status)}` : '/api/prospects';
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to fetch prospects');
-  return res.json();
+  if (status) {
+    const rows = await sql`SELECT * FROM prospects WHERE status = ${status} ORDER BY overall_score DESC`;
+    return rows as Prospect[];
+  }
+  const rows = await sql`SELECT * FROM prospects ORDER BY overall_score DESC`;
+  return rows as Prospect[];
 }
 
 export async function getProspectById(id: string): Promise<Prospect | null> {
-  // To avoid adding another route just for getProspectById right now,
-  // we could either fetch all and filter or add an endpoint.
-  // Assuming it's not heavily used, or we could add a new endpoint if needed.
-  // We'll leave it as an error if used, or mock it since it's not currently used in the pages we saw.
-  const res = await fetch(`/api/prospects/${id}`);
-  if (!res.ok) throw new Error('Failed to fetch prospect');
-  return res.json();
+  const rows = await sql`SELECT * FROM prospects WHERE id = ${id}`;
+  return (rows[0] as Prospect) || null;
 }
 
 export async function updateProspectStatus(id: string, status: string): Promise<void> {
-  const res = await fetch(`/api/prospects/${id}/status`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status })
-  });
-  if (!res.ok) throw new Error('Failed to update prospect status');
+  await sql`UPDATE prospects SET status = ${status}, updated_at = NOW() WHERE id = ${id}`;
 }
 
 export async function getSurveyResponses(): Promise<SurveyResponse[]> {
-  const res = await fetch('/api/surveys');
-  if (!res.ok) throw new Error('Failed to fetch survey responses');
-  return res.json();
+  const rows = await sql`SELECT * FROM survey_responses ORDER BY submitted_at DESC`;
+  return rows as SurveyResponse[];
 }
 
 export async function getProspectStats() {
-  const res = await fetch('/api/prospects/stats');
-  if (!res.ok) throw new Error('Failed to fetch prospect stats');
-  return res.json();
+  const rows = await sql`
+    SELECT
+      status,
+      COUNT(*)::int as count,
+      AVG(overall_score)::numeric(5,1) as avg_score
+    FROM prospects
+    GROUP BY status
+    ORDER BY count DESC
+  `;
+  return rows;
 }
+
+export { sql };
