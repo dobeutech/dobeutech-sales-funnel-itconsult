@@ -37,11 +37,11 @@ export interface SurveyResponse {
 }
 
 export async function getProspects(status?: string): Promise<Prospect[]> {
-  const query = status
-    ? `SELECT * FROM prospects WHERE status = $1 ORDER BY overall_score DESC`
-    : `SELECT * FROM prospects ORDER BY overall_score DESC`;
-  const params = status ? [status] : [];
-  const rows = await sql(query, params);
+  if (status) {
+    const rows = await sql`SELECT * FROM prospects WHERE status = ${status} ORDER BY overall_score DESC`;
+    return rows as Prospect[];
+  }
+  const rows = await sql`SELECT * FROM prospects ORDER BY overall_score DESC`;
   return rows as Prospect[];
 }
 
