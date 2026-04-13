@@ -42,26 +42,26 @@ All `sentinel/*` and feature branches except:
 ## Action Plan
 
 ### Phase 1: Merge Valuable Work
-1. ✅ Merge PR #38 (Dependabot updates) to main
-2. ✅ Optionally merge PR #40 (security headers + CI fixes) to main
+- [ ] Merge PR #38 (Dependabot updates) to main
+- [ ] Optionally merge PR #40 (security headers + CI fixes) to main
 
 ### Phase 2: Create Dev Branch
-1. ✅ Create `dev` branch from latest `main`
-2. ✅ Set up branch protection rules for `dev`
+- [ ] Create `dev` branch from latest `main`
+- [ ] Set up branch protection rules for `dev`
 
 ### Phase 3: Close Duplicate PRs
-1. ✅ Close PRs #28-37, #39-40 (except those merged)
-2. ✅ Add comment explaining consolidation
+- [ ] Close PRs #28-37, #39-40 (except those merged)
+- [ ] Add comment explaining consolidation
 
 ### Phase 4: Delete Obsolete Branches
-1. ✅ Delete all `sentinel/*` branches
-2. ✅ Delete `dev-local`, `cursor-dev/*`, `jules/*`, `fix/*` branches
-3. ✅ Keep only `main` and `dev`
+- [ ] Delete all `sentinel/*` branches
+- [ ] Delete `dev-local`, `cursor-dev/*`, `jules/*`, `fix/*` branches
+- [ ] Keep only `main` and `dev`
 
 ### Phase 5: Verification
-1. ✅ Confirm only `main` and `dev` branches exist
-2. ✅ Update CLAUDE.md to reflect new branch strategy
-3. ✅ Document in `.agent/progress.md`
+- [ ] Confirm only `main` and `dev` branches exist
+- [ ] Update CLAUDE.md to reflect new branch strategy
+- [ ] Document in `.agent/progress.md`
 
 ## Rationale
 
