@@ -44,6 +44,19 @@ jobs:
           RAW_BRANCH="preview/pr-${{ github.event.number }}-${{ needs.setup.outputs.branch }}"
           echo "TRUNC_BRANCH=${RAW_BRANCH:0:63}" >> "$GITHUB_ENV"
 
+      - name: Prune old preview branches
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEON_PROJECT_ID: ${{ vars.NEON_PROJECT_ID }}
+        run: |
+          npm i -g neonctl@v2
+          # Extract the numeric IDs of branches containing "preview/pr"
+          OLD_BRANCHES=$(neonctl branches list --project-id $NEON_PROJECT_ID -o json | grep -B1 '"name": "preview/pr' | grep '"id":' | sed 's/.*"id": "\(.*\)".*/\1/')
+          for BRANCH_ID in $OLD_BRANCHES; do
+            echo "Deleting old preview branch ID: $BRANCH_ID"
+            neonctl branches delete $BRANCH_ID --project-id $NEON_PROJECT_ID || true
+          done
+
       - name: Create Neon Branch
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v6
