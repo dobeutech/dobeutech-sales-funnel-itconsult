@@ -4,7 +4,7 @@
 - **Total branches**: 35
 - **Protected branches**: 1 (main)
 - **Open PRs**: 28+
-- **Target state**: Only `main` and `dev` branches
+- **Target state**: Only `main` and `dev` as long-lived branches (`feature/*` branches are short-lived and deleted after merging)
 
 ## Analysis
 
@@ -50,7 +50,7 @@ All `sentinel/*` and feature branches except:
 - [ ] Set up branch protection rules for `dev`
 
 ### Phase 3: Close Duplicate PRs
-- [ ] Close PRs #28-37, #39-40 (except those merged)
+- [ ] Close PRs #28-37 and #39; keep PR #40 open unless/until it has been merged in Phase 1
 - [ ] Add comment explaining consolidation
 
 ### Phase 4: Delete Obsolete Branches
