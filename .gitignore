@@ -148,6 +148,8 @@ vite.config.ts.timestamp-*
 .claude/
 .cursor/
 .serena/
+.vscode/
+CLAUDE.md
 
 # Prompt files (local only)
 prompt/
@@ -163,3 +165,7 @@ prompt/
 !package.json
 !package-lock.json
 !tsconfig.json
+
+# Claude Code internal data (Unicode PUA dir)
+/
+
