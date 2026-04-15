@@ -2,3 +2,11 @@
 **Vulnerability:** The codebase is using `sql(query, params)` with `@neondatabase/serverless` which is no longer supported and throws a runtime error.
 **Learning:** In newer versions of `@neondatabase/serverless`, calling `sql(query, params)` throws a TypeError: `This function can now be called only as a tagged-template function: sql\`SELECT \${value}\`, not sql("SELECT $1", [value], options). For a conventional function call with value placeholders ($1, $2, etc.), use sql.query("SELECT $1", [value], options).`
 **Prevention:** Always use `sql\`SELECT * FROM table WHERE col = \${val}\`` or `sql(query, params)` -> `sql(query, params)` is wrong, must use tagged templates or if dynamically building, `sql(query, params)` doesn't exist, we must use tagged templates `sql\`SELECT * FROM prospects WHERE status = \${status} ORDER BY overall_score DESC\``.
+
+## 2025-04-15 - [CRITICAL] Prevent Database Credentials Exposure in Vite Frontend Bundles
+**Vulnerability:** The Vite frontend application (`my-neon-app/src/lib/db.ts`) was directly importing `@neondatabase/serverless` and directly querying the database using a connection string loaded via `import.meta.env.VITE_DATABASE_URL`. Because Vite bundles all environment variables prefixed with `VITE_` into the client-side code, the production database connection string would be exposed to anyone who inspects the frontend bundle. Additionally, exposing direct database access to the client allows users to arbitrarily query and modify the database bypassing all authentication and authorization logic.
+**Learning:** In a BFF (Backend-for-Frontend) architecture like the one setup with Next.js API routes and the Vite dashboard proxy, all direct database interactions MUST reside solely within the secured API layer (Next.js backend) or server components. Attempting to manage serverless queries from a Single Page Application will inherently expose the connection mechanism.
+**Prevention:**
+1. Never import database clients (`@neondatabase/serverless`, `pg`, `prisma`, etc.) into a Vite project or `"use client"` Next.js component.
+2. Ensure database credentials are NEVER prefixed with `VITE_` or `NEXT_PUBLIC_` to prevent them from being bundled to the client.
+3. Establish clear boundaries where the frontend must fetch data via Next.js API routes (e.g. `/api/prospects`) rather than executing SQL queries.
