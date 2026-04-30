@@ -1,15 +1,8 @@
 import { NextResponse } from 'next/server';
-import { neon } from '@neondatabase/serverless';
+import { sql } from '@/lib/db';
 
 export async function GET() {
   try {
-    const dbUrl = process.env.DATABASE_URL;
-
-    if (!dbUrl) {
-      throw new Error('DATABASE_URL is not configured');
-    }
-
-    const sql = neon(dbUrl);
 
     const rows = await sql`
       SELECT
