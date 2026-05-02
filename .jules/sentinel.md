@@ -6,3 +6,7 @@
 **Vulnerability:** The Vite frontend application directly connected to the Neon database, exposing the `VITE_DATABASE_URL` credential and allowing arbitrary client-side SQL execution.
 **Learning:** In a BFF (Backend-for-Frontend) architecture, database logic must strictly reside in the secure Next.js API layer. Never introduce direct database connections in the Vite frontend.
 **Prevention:** Avoid configuring `@neondatabase/serverless` in Vite. Ensure all database access is proxied through authenticated server endpoints.
+## 2025-05-02 - Free Tier Branch Limit Prevention
+**Vulnerability:** GitHub Actions encountered a 422 error creating preview branches due to the Neon Free Tier 10-branch limit being reached.
+**Learning:** Checking for and deleting an explicitly named branch does not prevent 422 errors if the total branch capacity is consumed by other stale preview branches.
+**Prevention:** Automatically prune the oldest `preview/pr-*` branch using `neonctl` when the project branch count reaches 10 before creating a new one.
