@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
+      pull-requests: read
       issues: read
       id-token: write
 
@@ -30,9 +30,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-
-      - name: Create local bin directory for Claude
-        run: mkdir -p ~/.local/bin
 
       - name: Run Claude Code Review
         id: claude-review
