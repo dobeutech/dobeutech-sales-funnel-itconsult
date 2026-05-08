@@ -11,3 +11,7 @@
 ## 2024-05-08 - Automated Code Reviewer Assumption Note
 **Learning:** Automated code reviewers might incorrectly flag missing API implementations when migrating database logic from the Vite frontend to the Next.js backend. Always manually verify the existence of API routes in `src/app/api/...` rather than assuming they need to be created in the current patch.
 **Prevention:** If the API endpoints are already present in the codebase, ignore incorrect code review feedback suggesting they are missing.
+
+## 2024-05-08 - Neon Branch Limit in GitHub Actions
+**Learning:** Neon Free Tier projects have a strict limit of 10 active branches. If GitHub Actions relying on `neondatabase/create-branch-action` fail with 'ERROR: branches limit exceeded' or 422 errors despite deleting the current colliding branch, it indicates the 10-branch capacity has been reached by other stale PR branches, requiring manual or automated pruning via `neonctl`.
+**Prevention:** In the `neon-branch.yml` workflow, proactively prune stale branches if the limit is reached before attempting to create a new branch.
