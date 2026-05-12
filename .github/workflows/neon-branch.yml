@@ -53,6 +53,20 @@ jobs:
           echo "Deleting current preview branch if it already exists to prevent 422 errors"
           neonctl branches delete ${{ env.TRUNC_BRANCH }} --project-id $NEON_PROJECT_ID || true
 
+          BRANCHES_JSON=$(neonctl branches list --project-id $NEON_PROJECT_ID -o json)
+          BRANCH_COUNT=$(echo "$BRANCHES_JSON" | jq '. | length')
+
+          if [ "$BRANCH_COUNT" -ge 10 ]; then
+            echo "Branch limit (10) reached. Finding oldest preview branch to prune..."
+            OLDEST_BRANCH_ID=$(echo "$BRANCHES_JSON" | jq -r 'map(select(.name | startswith("preview/pr-"))) | sort_by(.created_at) | .[0].id')
+            if [ -n "$OLDEST_BRANCH_ID" ] && [ "$OLDEST_BRANCH_ID" != "null" ]; then
+              echo "Pruning oldest preview branch: $OLDEST_BRANCH_ID"
+              neonctl branches delete "$OLDEST_BRANCH_ID" --project-id $NEON_PROJECT_ID || true
+            else
+              echo "No valid preview branch found to prune."
+            fi
+          fi
+
       - name: Create Neon Branch
         id: create_neon_branch
         uses: neondatabase/create-branch-action@v6
