@@ -6,3 +6,7 @@
 **Vulnerability:** Client-side Vite application (my-neon-app) had direct access to the database via VITE_DATABASE_URL and made direct database queries using @neondatabase/serverless.
 **Learning:** This exposed the database credentials directly to anyone loading the application, allowing arbitrary queries to be run against the database.
 **Prevention:** Never prefix sensitive connection strings with VITE_ or NEXT_PUBLIC_. Always ensure database logic is kept server-side (like Next.js API routes) and accessed by the client through standard API calls (fetch).
+## 2024-03-09 - CI Failure: Neon Free Tier 10-Branch Limit Reached
+**Vulnerability:** CI workflow failed to create preview branches due to Neon Free Tier 10-branch limit causing 422 API errors.
+**Learning:** The workflow only deleted the exact branch for the current PR if it existed, but didn't handle the overall capacity limit, causing all new PRs to fail when 10 stale branches accumulated.
+**Prevention:** Integrated logic in .github/workflows/neon-branch.yml to use neonctl to check the branch count and automatically prune the oldest preview/pr-* branch before attempting creation.
